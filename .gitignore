@@ -1,0 +1,12 @@
+# Ignorar variáveis de ambiente locais (Segurança 12-Factor)
+.env
+.env.dev
+.env.qa
+.env.prod
+
+# Ignorar pastas de IDEs e SO
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
