@@ -1,0 +1,25 @@
+# Override de QA: adiciona o PostgreSQL compartilhado pelos serviços
+# Uso: docker compose -f docker-compose.yml -f docker-compose.qa.yml --env-file .env.qa up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ponto-postgres-${ENV_NAME}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:?DB_USER obrigatoria}
+      POSTGRES_PASSWORD: ${DB_PASS:?DB_PASS obrigatoria}
+      POSTGRES_DB: ${DB_NAME:?DB_NAME obrigatoria}
+    ports:
+      - "${DB_PORT:?DB_PORT obrigatoria}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
