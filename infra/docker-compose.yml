@@ -1,0 +1,26 @@
+# Infra base comum a todos os ambientes: ActiveMQ (AMQP 1.0)
+# DEV: docker compose --env-file .env.dev up -d
+# QA:  docker compose -f docker-compose.yml -f docker-compose.qa.yml --env-file .env.qa up -d
+# O nome do projeto (containers/volumes) segue ENV_NAME, isolando os ambientes.
+
+name: sistema-ponto-${ENV_NAME:?ENV_NAME obrigatoria}
+
+services:
+  activemq:
+    image: apache/activemq-classic:6.1.4
+    container_name: ponto-activemq-${ENV_NAME}
+    restart: unless-stopped
+    environment:
+      ACTIVEMQ_CONNECTION_USER: ${ACTIVEMQ_USER:?ACTIVEMQ_USER obrigatoria}
+      ACTIVEMQ_CONNECTION_PASSWORD: ${ACTIVEMQ_PASS:?ACTIVEMQ_PASS obrigatoria}
+      ACTIVEMQ_WEB_USER: ${ACTIVEMQ_USER}
+      ACTIVEMQ_WEB_PASSWORD: ${ACTIVEMQ_PASS}
+    ports:
+      - "${ACTIVEMQ_PORT:?ACTIVEMQ_PORT obrigatoria}:61616"
+      - "${ACTIVEMQ_AMQP_PORT:?ACTIVEMQ_AMQP_PORT obrigatoria}:5672"
+      - "${ACTIVEMQ_UI_PORT:?ACTIVEMQ_UI_PORT obrigatoria}:8161"
+    volumes:
+      - activemq_data:/opt/apache-activemq/data
+
+volumes:
+  activemq_data:
