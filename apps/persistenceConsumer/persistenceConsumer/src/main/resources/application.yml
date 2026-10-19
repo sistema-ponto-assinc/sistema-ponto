@@ -1,9 +1,17 @@
+# Configuração única para todos os ambientes.
+# Sem variáveis definidas, os valores padrão (após o ":") são os de DEV (H2 + Flyway).
+# Outros ambientes: APP_ENV=qa carrega o .env.qa da raiz do serviço (molde em .env.qa.example).
+
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
     name: persistenceConsumer
+
+  # Lê as variáveis do .env.<APP_ENV> (opcional: variáveis de ambiente do sistema também funcionam)
+  config:
+    import: optional:file:.env.${APP_ENV:dev}[.properties]
 
   # Console web do H2 (http://localhost:8080/h2-console)
   h2:
@@ -20,12 +28,12 @@ spring:
   jpa:
     database-platform: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
     hibernate:
-      ddl-auto: validate # Usamos validate porque o Flyway vai criar as tabelas
-    show-sql: true
+      ddl-auto: validate # Apenas confere as entidades contra o schema (Flyway em DEV, infra/db/init em QA)
+    show-sql: ${SHOW_SQL:true}
 
   # Configuração do Flyway
   flyway:
-    enabled: true
+    enabled: ${FLYWAY_ENABLED:true}
     url: ${DB_URL:jdbc:h2:mem:ponto_mock_db;DB_CLOSE_DELAY=-1}
     user: ${DB_USER:sa}
     password: ${DB_PASS:}
