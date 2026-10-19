@@ -1,4 +1,4 @@
-package com.sistema_ponto.persistenceConsumer.infra.inbound;
+package com.sistema_ponto.persistenceConsumer.core.DTO;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

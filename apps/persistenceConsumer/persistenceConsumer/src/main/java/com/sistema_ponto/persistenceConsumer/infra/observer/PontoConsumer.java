@@ -1,7 +1,7 @@
 package com.sistema_ponto.persistenceConsumer.infra.observer;
 
-import com.sistema_ponto.persistenceConsumer.infra.inbound.InboundPontoPayloadDTO;
-import com.sistema_ponto.persistenceConsumer.infra.inbound.RegistrarPontoUseCase;
+import com.sistema_ponto.persistenceConsumer.core.DTO.InboundPontoPayloadDTO;
+import com.sistema_ponto.persistenceConsumer.core.ports.RegistrarPontoUseCase;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
