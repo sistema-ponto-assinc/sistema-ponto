@@ -5,6 +5,8 @@ import com.sistema_ponto.persistenceConsumer.core.ports.PontoRepository;
 import com.sistema_ponto.persistenceConsumer.infra.outbound.database.SpringDataJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class JpaRepositoryAdapter implements PontoRepository {
 
@@ -18,5 +20,10 @@ public class JpaRepositoryAdapter implements PontoRepository {
     @Override
     public Ponto salvar(Ponto ponto) {
         return repository.save(ponto);
+    }
+
+    @Override
+    public Boolean verificarIdempotencia(UUID mensagemId) {
+        return repository.existsByMensagemId(mensagemId);
     }
 }

@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface SpringDataJpaRepository extends JpaRepository<Ponto, UUID> {
+    Boolean existsByMensagemId(UUID mensagemId);
 }

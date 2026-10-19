@@ -1,6 +1,7 @@
-# Configuração única para todos os ambientes.
-# Sem variáveis definidas, os valores padrão (após o ":") são os de DEV (H2 + Flyway).
-# Outros ambientes: APP_ENV=qa carrega o .env.qa da raiz do serviço (molde em .env.qa.example).
+# Configuração única para todos os ambientes: os valores vêm de variáveis.
+# APP_ENV escolhe o arquivo .env.<APP_ENV> da raiz do serviço (padrão: dev).
+# Moldes: .env.dev.example e .env.qa.example
+# Banco: PostgreSQL do infra; o schema é criado pelo infra/db/init (o serviço não roda migrations).
 
 server:
   port: ${SERVER_PORT:8080}
@@ -13,35 +14,20 @@ spring:
   config:
     import: optional:file:.env.${APP_ENV:dev}[.properties]
 
-  # Console web do H2 (http://localhost:8080/h2-console)
-  h2:
-    console:
-      enabled: ${H2_CONSOLE_ENABLED:true}
-
-  # Configuração de Banco de Dados (JPA/Hibernate)
+  # Configuração de Banco de Dados (PostgreSQL)
   datasource:
-    url: ${DB_URL:jdbc:h2:mem:ponto_mock_db;DB_CLOSE_DELAY=-1}
-    username: ${DB_USER:sa}
-    password: ${DB_PASS:}
-    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
 
   jpa:
-    database-platform: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
     hibernate:
-      ddl-auto: validate # Apenas confere as entidades contra o schema (Flyway em DEV, infra/db/init em QA)
-    show-sql: ${SHOW_SQL:true}
+      ddl-auto: validate # Apenas confere as entidades contra o schema criado pelo infra
+    show-sql: ${SHOW_SQL:false}
 
-  # Configuração do Flyway
-  flyway:
-    enabled: ${FLYWAY_ENABLED:true}
-    url: ${DB_URL:jdbc:h2:mem:ponto_mock_db;DB_CLOSE_DELAY=-1}
-    user: ${DB_USER:sa}
-    password: ${DB_PASS:}
-
-  # Configuração da Fila (ActiveMQ)
-  activemq:
-    broker-url: ${ACTIVEMQ_URL:tcp://localhost:61616}
-    user: ${ACTIVEMQ_USER:admin}
-    password: ${ACTIVEMQ_PASS:admin}
-    packages:
-      trust-all: true # Permite receber JSONs seriazados na fila
+# Configuração da Fila (ActiveMQ via AMQP 1.0, cliente Qpid JMS)
+amqphub:
+  amqp10jms:
+    remote-url: ${ACTIVEMQ_URL:amqp://localhost:5672}
+    username: ${ACTIVEMQ_USER}
+    password: ${ACTIVEMQ_PASS}

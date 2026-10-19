@@ -11,7 +11,7 @@ public class Productor implements PontoNotificador {
     private ObjectMapper objectMapper;
     private JmsTemplate template;
 
-    private static final String FILA_NOTIFICACAO = "ponto.fila.notificacao";
+    private static final String FILA_NOTIFICACAO = "fila.ponto.notificacao";
 
     public Productor(ObjectMapper objectMapper, JmsTemplate template) {
         this.objectMapper = objectMapper;

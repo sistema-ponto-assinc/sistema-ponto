@@ -5,16 +5,16 @@ import java.util.UUID;
 
 public record OutboundNotificationPayloadDTO (
         UUID mensagemId,
-        String funcionarioId,
-        String nomeFuncionário,
+        String idFuncionario,
+        String nomeFuncionario,
         String emailFuncionario,
         OffsetDateTime timestampRegistro
 
 ){
-    public OutboundNotificationPayloadDTO(UUID mensagemId, String funcionarioId, String nomeFuncionário, String emailFuncionario, OffsetDateTime timestampRegistro) {
+    public OutboundNotificationPayloadDTO(UUID mensagemId, String idFuncionario, String nomeFuncionario, String emailFuncionario, OffsetDateTime timestampRegistro) {
         this.mensagemId = mensagemId;
-        this.funcionarioId = funcionarioId;
-        this.nomeFuncionário = nomeFuncionário;
+        this.idFuncionario = idFuncionario;
+        this.nomeFuncionario = nomeFuncionario;
         this.emailFuncionario = emailFuncionario;
         this.timestampRegistro = timestampRegistro;
     }

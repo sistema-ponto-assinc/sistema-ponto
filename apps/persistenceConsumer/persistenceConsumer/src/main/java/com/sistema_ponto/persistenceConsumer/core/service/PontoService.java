@@ -9,6 +9,8 @@ import com.sistema_ponto.persistenceConsumer.core.DTO.InboundPontoPayloadDTO;
 import com.sistema_ponto.persistenceConsumer.core.ports.RegistrarPontoUseCase;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class PontoService implements RegistrarPontoUseCase {
     private PontoRepository repository;
@@ -24,7 +26,13 @@ public class PontoService implements RegistrarPontoUseCase {
 
     @Override
     public void processar(InboundPontoPayloadDTO dto) {
+
+        if(verificarIdempotencia(dto.mensagemId())){
+            return;
+        }
         try{
+
+
             var ponto = repository.salvar(new Ponto(dto.mensagemId(), funcionarioRepository.buscarPorId(dto.idFuncionario()), dto.timestampRegistro()));
 
             var outboundPayload  = new OutboundNotificationPayloadDTO(ponto.getMessagemId(),ponto.getFuncionario().getId(),ponto.getFuncionario().getNome(),ponto.getFuncionario().getEmail(), ponto.getTimestampRegistro());
@@ -41,6 +49,8 @@ public class PontoService implements RegistrarPontoUseCase {
 
 
     }
-
+    private boolean verificarIdempotencia(UUID mensagemId){
+        return repository.verificarIdempotencia(mensagemId);
+    }
 
 }
