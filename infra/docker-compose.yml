@@ -1,6 +1,6 @@
-# Infra base comum a todos os ambientes: ActiveMQ (AMQP 1.0)
+# Infra comum a todos os ambientes: ActiveMQ (AMQP 1.0) + PostgreSQL
 # DEV: docker compose --env-file .env.dev up -d
-# QA:  docker compose -f docker-compose.yml -f docker-compose.qa.yml --env-file .env.qa up -d
+# QA:  docker compose --env-file .env.qa up -d
 # O nome do projeto (containers/volumes) segue ENV_NAME, isolando os ambientes.
 
 name: sistema-ponto-${ENV_NAME:?ENV_NAME obrigatoria}
@@ -16,11 +16,32 @@ services:
       ACTIVEMQ_WEB_USER: ${ACTIVEMQ_USER}
       ACTIVEMQ_WEB_PASSWORD: ${ACTIVEMQ_PASS}
     ports:
-      - "${ACTIVEMQ_PORT:?ACTIVEMQ_PORT obrigatoria}:61616"
+      # Porta AMQP 1.0 (protocolo oficial dos serviços)
       - "${ACTIVEMQ_AMQP_PORT:?ACTIVEMQ_AMQP_PORT obrigatoria}:5672"
+      # Console web do ActiveMQ
       - "${ACTIVEMQ_UI_PORT:?ACTIVEMQ_UI_PORT obrigatoria}:8161"
     volumes:
       - activemq_data:/opt/apache-activemq/data
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: ponto-postgres-${ENV_NAME}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:?DB_USER obrigatoria}
+      POSTGRES_PASSWORD: ${DB_PASS:?DB_PASS obrigatoria}
+      POSTGRES_DB: ${DB_NAME:?DB_NAME obrigatoria}
+    ports:
+      - "${DB_PORT:?DB_PORT obrigatoria}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   activemq_data:
+  postgres_data:
