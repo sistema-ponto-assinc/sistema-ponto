@@ -12,6 +12,8 @@ public class PontoConsumer {
     private RegistrarPontoUseCase pontoUseCase;
     private ObjectMapper objectMapper;
 
+    private static final String FILA_PROCESSAMENTO  = "fila.ponto.processamento";
+
     public PontoConsumer(RegistrarPontoUseCase pontoUseCase, ObjectMapper mapper) {
         this.pontoUseCase = pontoUseCase;
         this.objectMapper = mapper;
