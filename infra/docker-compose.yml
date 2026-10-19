@@ -42,6 +42,30 @@ services:
       timeout: 5s
       retries: 5
 
+  # Serviço Java gerado a partir do código do repositório (apps/persistenceConsumer/Dockerfile).
+  # Só sobe com --profile app: em DEV o serviço costuma rodar pela IDE.
+  persistence-consumer:
+    build: ../apps/persistenceConsumer
+    image: ponto/persistence-consumer:${ENV_NAME}
+    container_name: ponto-persistence-consumer-${ENV_NAME}
+    profiles: ["app"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_started
+    environment:
+      # Dentro do compose, banco e broker são acessados pelo nome do serviço e porta interna
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      ACTIVEMQ_URL: amqp://activemq:5672
+      ACTIVEMQ_USER: ${ACTIVEMQ_USER}
+      ACTIVEMQ_PASS: ${ACTIVEMQ_PASS}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
 volumes:
   activemq_data:
   postgres_data:

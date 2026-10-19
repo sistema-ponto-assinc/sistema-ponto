@@ -1,0 +1,33 @@
+# Configuração única para todos os ambientes: os valores vêm de variáveis.
+# APP_ENV escolhe o arquivo .env.<APP_ENV> da raiz do serviço (padrão: dev).
+# Moldes: .env.dev.example e .env.qa.example
+# Banco: PostgreSQL do infra; o schema é criado pelo infra/db/init (o serviço não roda migrations).
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: persistenceConsumer
+
+  # Lê as variáveis do .env.<APP_ENV> (opcional: variáveis de ambiente do sistema também funcionam)
+  config:
+    import: optional:file:.env.${APP_ENV:dev}[.properties]
+
+  # Configuração de Banco de Dados (PostgreSQL)
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Apenas confere as entidades contra o schema criado pelo infra
+    show-sql: ${SHOW_SQL:false}
+
+# Configuração da Fila (ActiveMQ via AMQP 1.0, cliente Qpid JMS)
+amqphub:
+  amqp10jms:
+    remote-url: ${ACTIVEMQ_URL:amqp://localhost:5672}
+    username: ${ACTIVEMQ_USER}
+    password: ${ACTIVEMQ_PASS}
