@@ -15,16 +15,16 @@ public class Ponto {
     @Column(name = "mensagem_id", nullable = false, unique = true)
     private UUID messagemId;
 
-    @Column(name = "id_funcionario", nullable = false)
-    private String funcionarioId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_funcionario", nullable = false)
+    private Funcionario funcionario;
 
     @Column(name = "timestamp_registro", nullable = false)
     private OffsetDateTime timestampRegistro;
 
-    public Ponto(UUID messagemId, String funcionarioId, OffsetDateTime timestampRegistro) {
-        this.id = id;
+    public Ponto(UUID messagemId, Funcionario funcionario, OffsetDateTime timestampRegistro) {
         this.messagemId = messagemId;
-        this.funcionarioId = funcionarioId;
+        this.funcionario = funcionario;
         this.timestampRegistro = timestampRegistro;
     }
 
@@ -39,8 +39,8 @@ public class Ponto {
         return messagemId;
     }
 
-    public String getFuncionarioId() {
-        return funcionarioId;
+    public Funcionario getFuncionario() {
+        return funcionario;
     }
 
     public OffsetDateTime getTimestampRegistro() {
@@ -52,7 +52,7 @@ public class Ponto {
         return "Ponto{" +
                 "id=" + id +
                 ", messagemId=" + messagemId +
-                ", funcionarioId='" + funcionarioId + '\'' +
+                ", funcionario='" + funcionario + '\'' +
                 ", timestampRegistro=" + timestampRegistro +
                 '}';
     }
