@@ -26,7 +26,7 @@ class NotificacaoConsumer(MessagingHandler):
     def on_start(self, event):
         conexao = event.container.connect(URL, user=USUARIO, password=SENHA, allow_insecure_mechs=True)
         event.container.create_receiver(conexao, FILA)
-        print(f"Escutando a fila {FILA}... (Ctrl+C para parar)")
+        print(f"Escutando a fila -> {FILA}")
 
     def on_message(self, event):
         try:
