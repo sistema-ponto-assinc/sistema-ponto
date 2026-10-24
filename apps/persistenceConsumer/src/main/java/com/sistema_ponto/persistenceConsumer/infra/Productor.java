@@ -1,7 +1,9 @@
 package com.sistema_ponto.persistenceConsumer.infra;
 
 import com.sistema_ponto.persistenceConsumer.core.DTO.OutboundNotificationPayloadDTO;
+import com.sistema_ponto.persistenceConsumer.core.exceptions.FilaIndisponivelException;
 import com.sistema_ponto.persistenceConsumer.core.ports.PontoNotificador;
+import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -23,12 +25,10 @@ public class Productor implements PontoNotificador {
 
         try {
             template.convertAndSend(FILA_NOTIFICACAO,criarJsonPayloadTemplate(outboundDTO));
-
-        }catch (Exception e){
-            throw new RuntimeException(e);
+        }catch (JmsException e){
+            throw new FilaIndisponivelException(e);
         } finally {
             System.out.println(outboundDTO.emailFuncionario());
-
         }
 
 

@@ -1,9 +1,11 @@
 package com.sistema_ponto.persistenceConsumer.infra.observer;
 
 import com.sistema_ponto.persistenceConsumer.core.DTO.InboundPontoPayloadDTO;
+import com.sistema_ponto.persistenceConsumer.core.exceptions.PontoException;
 import com.sistema_ponto.persistenceConsumer.core.ports.RegistrarPontoUseCase;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -21,14 +23,28 @@ public class PontoConsumer {
 
     @JmsListener(destination = "fila.ponto.processamento")
     public void receber(String messagePayload){
+        InboundPontoPayloadDTO dtoToSend;
+
+        try{
+             dtoToSend = deserializer(messagePayload);
+        }catch (JacksonException e){
+            System.out.println("Payload Invalido, descarando{}" + messagePayload + e);
+            return;
+        }
+
+
 
         try {
 
-            pontoUseCase.processar(deserializer(messagePayload));
+            pontoUseCase.processar(dtoToSend);
 
 
-        }catch (Exception e){
-            throw new RuntimeException("Falha ao serializar a mensagem da fila" + e.getMessage());
+        }catch (PontoException e){
+            if(!e.isRecuperavel()){
+                System.out.println("Mensagem descartada, messagemId:," + dtoToSend.mensagemId() + e.getMessage());
+                return;
+            }
+            throw e;
         }
 
 
