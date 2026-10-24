@@ -2,9 +2,10 @@ package com.sistema_ponto.persistenceConsumer.core.ports;
 
 import com.sistema_ponto.persistenceConsumer.core.domain.Ponto;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PontoRepository {
     Ponto salvar(Ponto ponto);
-    Boolean verificarIdempotencia(UUID mensagemId);
+    Optional<Ponto> buscarPorMensagemId(UUID mensagemId);
 }
