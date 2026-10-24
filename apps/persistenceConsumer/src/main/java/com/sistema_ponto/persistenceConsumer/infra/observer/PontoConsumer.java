@@ -28,7 +28,7 @@ public class PontoConsumer {
         try{
              dtoToSend = deserializer(messagePayload);
         }catch (JacksonException e){
-            System.out.println("Payload Invalido, descarando{}" + messagePayload + e);
+            System.out.println("Payload Invalido, descartando {}" + messagePayload + e);
             return;
         }
 
