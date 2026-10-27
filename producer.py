@@ -1,39 +1,42 @@
 """
 Producer API
- - POST /apontar -> publica na FILA   (ponto a ponto: um consumidor processa cada mensagem)
- - POST /avisos  -> publica no TÓPICO (pub/sub: todos os consumidores inscritos recebem)
+ - POST /pontos -> recebe idFuncionario e publica um RegistrarPontoCommand na fila
+ - POST /avisos -> publica avisos no tópico
 """
 import json
 import logging
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Literal, Optional
+from typing import Optional
 
-import stomp
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from proton import Message
+from proton.utils import BlockingConnection
 
 BROKER_HOST = os.getenv("BROKER_HOST", "localhost")
-BROKER_PORT = int(os.getenv("BROKER_PORT", "61613"))  # STOMP (ActiveMQ Classic)
+BROKER_PORT = int(os.getenv("BROKER_PORT", "5672"))  # AMQP 1.0 (ActiveMQ Classic)
 BROKER_USER = os.getenv("BROKER_USER", "admin")
 BROKER_PASSWORD = os.getenv("BROKER_PASSWORD", "admin")
-QUEUE_NAME = os.getenv("QUEUE_NAME", "/queue/fila.ponto.processamento")
-TOPIC_NAME = os.getenv("TOPIC_NAME", "/topic/avisos")
+QUEUE_NAME = os.getenv("QUEUE_NAME", "queue://fila.ponto.processamento")
+TOPIC_NAME = os.getenv("TOPIC_NAME", "topic://avisos")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("producer-api")
 
-app = FastAPI(title="Producer API - Ponto", version="1.1.0")
+app = FastAPI(title="Producer API - Ponto", version="1.2.0")
 
 
-class Apontamento(BaseModel):
-    matricula: str = Field(..., min_length=1, examples=["12345"])
-    tipo: Literal["ENTRADA", "SAIDA"] = Field(..., examples=["ENTRADA"])
-    data_hora: Optional[datetime] = Field(
-        default=None, description="ISO 8601. Se omitido, usa o horário atual (UTC)."
-    )
+class RegistrarPontoRequest(BaseModel):
+    idFuncionario: str = Field(..., min_length=1, examples=["98765"])
 
+
+class RegistrarPontoCommand(BaseModel):
+    mensagemId: str
+    idFuncionario: str
+    timestampRegistro: str
 
 class Aviso(BaseModel):
     mensagem: str = Field(..., min_length=1, examples=["Sistema entra em manutenção às 22h"])
@@ -41,20 +44,22 @@ class Aviso(BaseModel):
 
 
 def publicar(destination: str, payload: dict, persistente: bool = False) -> None:
-    """Abre conexão STOMP, publica o JSON no destino (fila ou tópico) e desconecta."""
-    headers = {"persistent": "true"} if persistente else {}
-    conn = stomp.Connection([(BROKER_HOST, BROKER_PORT)])
+    """Abre conexão AMQP 1.0, publica o JSON no destino e desconecta."""
+    conn = BlockingConnection(
+        f"amqp://{BROKER_HOST}:{BROKER_PORT}",
+        timeout=10,
+        user=BROKER_USER,
+        password=BROKER_PASSWORD,
+        allow_insecure_mechs=True,
+    )
     try:
-        conn.connect(BROKER_USER, BROKER_PASSWORD, wait=True)
-        conn.send(
-            destination=destination,
-            body=json.dumps(payload, ensure_ascii=False),
-            content_type="application/json",
-            headers=headers,
-        )
+        sender = conn.create_sender(destination)
+        mensagem = Message(body=json.dumps(payload, ensure_ascii=False))
+        mensagem.content_type = "application/json"
+        mensagem.durable = persistente
+        sender.send(mensagem)
     finally:
-        if conn.is_connected():
-            conn.disconnect()
+        conn.close()
 
 
 def publicar_ou_503(destination: str, payload: dict, persistente: bool = False) -> None:
@@ -66,14 +71,20 @@ def publicar_ou_503(destination: str, payload: dict, persistente: bool = False) 
     log.info("[producer] Enviada para %s -> %s", destination, payload)
 
 
-@app.post("/apontar", status_code=202)
-def apontar(apontamento: Apontamento):
-    payload = {
-        "id": str(uuid.uuid4()),
-        "matricula": apontamento.matricula,
-        "tipo": apontamento.tipo,
-        "data_hora": (apontamento.data_hora or datetime.now(timezone.utc)).isoformat(),
-    }
+@app.post("/pontos", status_code=202)
+def registrar_ponto(ponto: RegistrarPontoRequest):
+    timestamp_registro = (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+    command = RegistrarPontoCommand(
+        mensagemId=str(uuid.uuid4()),
+        idFuncionario=ponto.idFuncionario,
+        timestampRegistro=timestamp_registro,
+    )
+    payload = command.model_dump()
     publicar_ou_503(QUEUE_NAME, payload, persistente=True)
     return {"status": "enfileirado", "fila": QUEUE_NAME, "mensagem": payload}
 

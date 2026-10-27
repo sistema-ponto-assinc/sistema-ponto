@@ -2,21 +2,16 @@ services:
   activemq:
     image: apache/activemq-classic:6.2.0
     ports:
-      - "61613:61613"
+      - "5672:5672"
       - "8161:8161"
     restart: unless-stopped
 
   producer:
-    image: python:3.12-slim
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: >-
-      sh -c "pip install --no-cache-dir -r requirements.txt &&
-      uvicorn producer:app --host 0.0.0.0 --port 8000"
+    build: .
+    image: sistema-ponto-producer:latest
     environment:
       BROKER_HOST: activemq
-      BROKER_PORT: "61613"
+      BROKER_PORT: "5672"
       BROKER_USER: admin
       BROKER_PASSWORD: admin
     ports:

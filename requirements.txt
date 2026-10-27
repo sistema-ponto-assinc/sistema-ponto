@@ -1,4 +1,4 @@
 fastapi
 pydantic
-stomp.py
+python-qpid-proton==0.40.0
 uvicorn
