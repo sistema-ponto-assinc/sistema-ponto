@@ -3,6 +3,7 @@
 .env.dev
 .env.qa
 .env.prod
+.venv/
 
 # Ignorar pastas de IDEs e SO
 .idea/
