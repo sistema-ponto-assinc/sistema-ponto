@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface PontoRepository {
     Ponto salvar(Ponto ponto);
     Optional<Ponto> buscarPorMensagemId(UUID mensagemId);
+    Optional<Ponto> buscarUltimoPorFuncionario(String idFuncionario);
 }
