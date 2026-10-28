@@ -41,6 +41,14 @@ public class JpaRepositoryAdapter implements PontoRepository {
         }
     }
 
+    @Override
+    public Optional<Ponto> buscarUltimoPorFuncionario(String idFuncionario) {
+        try{
+            return repository.findTopByFuncionarioIdOrderByTimestampRegistroDesc(idFuncionario);
 
+        }catch (DataAccessException | TransactionException e){
+            throw new PersistenciaIndisponivelException(e);
+        }
+    }
 
 }

@@ -41,7 +41,7 @@ public class PontoConsumer {
 
         }catch (PontoException e){
             if(!e.isRecuperavel()){
-                System.out.println("Mensagem descartada, messagemId:," + dtoToSend.mensagemId() + e.getMessage());
+                System.out.println("Mensagem descartada, messagemId:, " + dtoToSend.mensagemId() + e.getMessage());
                 return;
             }
             throw e;
