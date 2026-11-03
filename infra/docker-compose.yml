@@ -56,6 +56,7 @@ services:
       activemq:
         condition: service_started
     environment:
+      APP_ENV: ${ENV_NAME}
       # Dentro do compose, banco e broker são acessados pelo nome do serviço e porta interna
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
       DB_USER: ${DB_USER}
@@ -79,11 +80,34 @@ services:
       activemq:
         condition: service_started
     environment:
+      APP_ENV: ${ENV_NAME}
       # Dentro do compose, o broker é acessado pelo nome do serviço e porta interna
       ACTIVEMQ_URL: amqp://activemq:5672
       ACTIVEMQ_USER: ${ACTIVEMQ_USER}
       ACTIVEMQ_PASS: ${ACTIVEMQ_PASS}
       FILA_NOTIFICACAO: fila.ponto.notificacao
+
+  # Serviço Python gerado a partir do código do repositório (apps/apiProducer/Dockerfile).
+  # Só sobe com --profile app: em DEV o serviço costuma rodar pelo terminal.
+  # Recebe o registro de ponto via HTTP e publica na fila de processamento.
+  api-producer:
+    build: ../apps/apiProducer
+    image: ponto/api-producer:${ENV_NAME}
+    container_name: ponto-api-producer-${ENV_NAME}
+    profiles: ["app"]
+    restart: unless-stopped
+    depends_on:
+      activemq:
+        condition: service_started
+    environment:
+      APP_ENV: ${ENV_NAME}
+      # Dentro do compose, o broker é acessado pelo nome do serviço e porta interna
+      ACTIVEMQ_URL: amqp://activemq:5672
+      ACTIVEMQ_USER: ${ACTIVEMQ_USER}
+      ACTIVEMQ_PASS: ${ACTIVEMQ_PASS}
+      FILA_PROCESSAMENTO: fila.ponto.processamento
+    ports:
+      - "${API_PORT:?API_PORT obrigatoria}:8080"
 
 volumes:
   activemq_data:
