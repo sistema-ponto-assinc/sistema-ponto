@@ -1,0 +1,6 @@
+target/
+.idea/
+persistenceConsumer/
+.env*
+HELP.md
+*.iml
